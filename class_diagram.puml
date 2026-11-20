@@ -1,0 +1,143 @@
+@startuml class_diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam dpi 300
+skinparam defaultFontName "Arial", "Helvetica", sans-serif
+skinparam defaultTextAlignment center
+skinparam classFontSize 12
+skinparam classAttributeFontSize 11
+skinparam roundcorner 6
+skinparam shadowing false
+skinparam handwritten false
+
+' High readability edge and label styling
+skinparam ArrowColor #34495E
+skinparam ArrowThickness 1.8
+skinparam ArrowFontName "Arial Bold", sans-serif
+skinparam ArrowFontSize 11
+skinparam ArrowFontColor #1A5276
+
+skinparam class {
+    BackgroundColor #F8F9FA
+    BorderThickness 1.5
+}
+
+' Per-entity palette: header and border in the entity colour
+skinparam class {
+    BackgroundColor<<person>> #F8F9FA
+    BorderColor<<person>> #2C3E50
+    HeaderBackgroundColor<<person>> #2C3E50
+
+    BackgroundColor<<client>> #F8F9FA
+    BorderColor<<client>> #16A085
+    HeaderBackgroundColor<<client>> #16A085
+
+    BackgroundColor<<employee>> #F8F9FA
+    BorderColor<<employee>> #2980B9
+    HeaderBackgroundColor<<employee>> #2980B9
+
+    BackgroundColor<<role>> #F8F9FA
+    BorderColor<<role>> #8E44AD
+    HeaderBackgroundColor<<role>> #8E44AD
+
+    BackgroundColor<<service>> #F8F9FA
+    BorderColor<<service>> #D35400
+    HeaderBackgroundColor<<service>> #D35400
+
+    BackgroundColor<<masterservice>> #F8F9FA
+    BorderColor<<masterservice>> #7F8C8D
+    HeaderBackgroundColor<<masterservice>> #7F8C8D
+
+    BackgroundColor<<slot>> #F8F9FA
+    BorderColor<<slot>> #C0392B
+    HeaderBackgroundColor<<slot>> #C0392B
+}
+
+skinparam classFontColor<<person>> #FFFFFF
+skinparam classFontColor<<client>> #FFFFFF
+skinparam classFontColor<<employee>> #FFFFFF
+skinparam classFontColor<<role>> #FFFFFF
+skinparam classFontColor<<service>> #FFFFFF
+skinparam classFontColor<<masterservice>> #FFFFFF
+skinparam classFontColor<<slot>> #FFFFFF
+
+hide methods
+hide circle
+hide stereotype
+skinparam classStereotypeFontSize 0
+
+class "<b>Персоны (Persons)</b>" as Person <<person>> {
+    + Person_id : UUID [PK]
+    + Login : VARCHAR(50) [Unique]
+    + Password_hash : VARCHAR(255)
+    + First_name : VARCHAR(50)
+    + Patronymic : VARCHAR(50)
+    + Phone_number : VARCHAR(12) [Unique]
+    + Registration_date : TIMESTAMP
+    + Role_id : UUID [FK]
+    + Preferred_channel : ENUM
+    + Status : ENUM
+}
+
+class "<b>Клиенты (Clients)</b>" as Client <<client>> {
+    + Client_id : BIGINT [PK]
+    + Person_id : BIGINT [FK, Unique]
+    + Registration_date : TIMESTAMP
+    + Preferred_channel : ENUM
+    + Total_visits : INT
+    + Loyalty_status : ENUM
+    + Manager_notes : TEXT(1000)
+}
+
+class "<b>Сотрудники (Employees)</b>" as Employee <<employee>> {
+    + Employee_id : BIGINT [PK]
+    + Person_id : BIGINT [FK, Unique]
+    + Registration_date : TIMESTAMP
+    + Hire_date : DATE
+    + Position : VARCHAR(50)
+    + Hourly_rate : DECIMAL(10,2)
+    + Rating : DECIMAL(3,2)
+    + Status : ENUM
+}
+
+class "<b>Роли сотрудника (EmployeeRoles)</b>" as EmployeeRole <<role>> {
+    + Role_assignment_id : BIGINT [PK]
+    + Employee_id : BIGINT [FK]
+    + Role : ENUM
+}
+
+class "<b>Услуги (Services)</b>" as Service <<service>> {
+    + Service_id : BIGINT [PK]
+    + Name : VARCHAR(100)
+}
+
+class "<b>Услуги мастера (MasterServices)</b>" as MasterService <<masterservice>> {
+    + Master_service_id : BIGINT [PK]
+    + Employee_id : BIGINT [FK]
+    + Service_id : BIGINT [FK]
+}
+
+class "<b>Слоты обслуживания (ServiceSlots)</b>" as ServiceSlot <<slot>> {
+    + Slot_id : INT / UUID [PK]
+    + Slot_date : DATE
+    + Start_time : TIME
+    + End_time : TIME
+    + Master_id : INT / UUID [FK]
+    + Client_id : INT / UUID [FK, Nullable]
+    + Service_id : INT / UUID [FK]
+    + Status : VARCHAR(20) / ENUM
+}
+
+' Relationships with explicit semantic description and cardinality
+Person "1" --> "1" Client : **является клиентом**\nмножественность: 1:1
+Person "1" --> "1" Employee : **является сотрудником**\nмножественность: 1:1
+
+Employee "1" --> "*" EmployeeRole : **имеет роль**\nмножественность: 1:*
+Employee "1" --> "*" MasterService : **квалифицирован**\nмножественность: 1:*
+Service "1" --> "*" MasterService : **оказывается мастерами**\nмножественность: 1:*
+
+Client "1" --> "*" ServiceSlot : **бронирует слот**\nмножественность: 1:*
+Employee "1" --> "*" ServiceSlot : **проводит прием**\nмножественность: 1:*
+Service "1" --> "*" ServiceSlot : **оказывается в слоте**\nмножественность: 1:*
+
+@enduml
